@@ -75,6 +75,7 @@ struct Metadata: Codable {
 class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 	var metadata: Metadata
 	let url: URL
+    var romURL: URL?
 	var virtualMachine: VZVirtualMachine!
 	var hardwareModel: VZMacHardwareModel!
 	var machineIdentifier: VZMacMachineIdentifier!
@@ -128,7 +129,13 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 		let configuration = metadata.configuration!
 
 		let vmConfiguration = VZVirtualMachineConfiguration()
-        vmConfiguration.bootLoader = VZMacOSBootLoader()
+        let bootLoader = VZMacOSBootLoader()
+        let romURL = URL(fileURLWithPath: "/Users/whbex/avp.bin")
+        if FileManager.default.fileExists(atPath: romURL.path) {
+            self.romURL = romURL
+            Dynamic(bootLoader)._setROMURL(romURL)
+        }
+        vmConfiguration.bootLoader = bootLoader
         
 		let platform = VZMacPlatformConfiguration()
 		platform.hardwareModel = hardwareModel
@@ -198,6 +205,9 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 
 		running = true
         print("Starting VM (DFU: \(metadata.configuration!.bootIntoDFU.description))")
+        if let romURL = self.romURL {
+            print("Using custom AVPBooter at \(romURL.path)")
+        }
 	}
 
 	func stop() async throws {
