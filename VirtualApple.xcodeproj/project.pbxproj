@@ -118,6 +118,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				81158A582F994A69006B2741 /* PBXTargetDependency */,
 			);
 			name = VirtualApple;
 			productName = VirtualApple;
@@ -193,11 +194,20 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		81158A582F994A69006B2741 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 81158A572F994A69006B2741 /* Dynamic */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		4932440B2749D9F1003E8999 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 49D086FB274BBA3700859181 /* Debug.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = X4A9GH5NN2;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 			};
 			name = Debug;
 		};
@@ -205,6 +215,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 49D086FE274BBA8400859181 /* Release.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = X4A9GH5NN2;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 			};
 			name = Release;
 		};
@@ -213,6 +225,7 @@
 			baseConfigurationReference = 49D086FF274BBA9C00859181 /* VirtualApple.xcconfig */;
 			buildSettings = {
 				DEVELOPMENT_ASSET_PATHS = "";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = /Users/whbex/Sources/VirtualApple/VirtualApple/PrivateBridge.h;
 			};
 			name = Debug;
@@ -222,6 +235,7 @@
 			baseConfigurationReference = 49D086FF274BBA9C00859181 /* VirtualApple.xcconfig */;
 			buildSettings = {
 				DEVELOPMENT_ASSET_PATHS = "";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = /Users/whbex/Sources/VirtualApple/VirtualApple/PrivateBridge.h;
 			};
 			name = Release;
@@ -262,6 +276,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		81158A552F9946ED006B2741 /* Dynamic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 81158A542F9946ED006B2741 /* XCRemoteSwiftPackageReference "Dynamic" */;
+			productName = Dynamic;
+		};
+		81158A572F994A69006B2741 /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 81158A542F9946ED006B2741 /* XCRemoteSwiftPackageReference "Dynamic" */;
 			productName = Dynamic;
