@@ -7,7 +7,7 @@
 
 import Foundation
 import Virtualization
-
+import Dynamic
 
 @objc protocol _VZGDBDebugStubConfiguration{
 	init(port: Int)
@@ -129,6 +129,7 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 
 		let vmConfiguration = VZVirtualMachineConfiguration()
         vmConfiguration.bootLoader = VZMacOSBootLoader()
+        
 		let platform = VZMacPlatformConfiguration()
 		platform.hardwareModel = hardwareModel
 		platform.auxiliaryStorage = try VZMacAuxiliaryStorage(creatingStorageAt: url.appendingPathComponent("aux.img"), hardwareModel: hardwareModel, options: .allowOverwrite)
@@ -196,11 +197,12 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
         }
 
 		running = true
-        print("\n === New VM Session ===\n")
+        print("Starting VM (DFU: \(metadata.configuration!.bootIntoDFU.description))")
 	}
 
 	func stop() async throws {
 		defer {
+            print("VM is shutting down")
 			running = false
 		}
 		try await virtualMachine.stop()

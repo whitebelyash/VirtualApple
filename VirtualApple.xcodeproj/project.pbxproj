@@ -20,6 +20,7 @@
 		49F82D48274A0CC5004D986D /* WindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F82D47274A0CC5004D986D /* WindowController.swift */; };
 		49F82D4C274A0D98004D986D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F82D4B274A0D98004D986D /* ViewController.swift */; };
 		49F82D4E274A21C5004D986D /* ConfigurationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F82D4D274A21C5004D986D /* ConfigurationViewController.swift */; };
+		81158A562F9946ED006B2741 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 81158A552F9946ED006B2741 /* Dynamic */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				81158A562F9946ED006B2741 /* Dynamic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -146,6 +148,9 @@
 				Base,
 			);
 			mainGroup = 493243F22749D9F0003E8999;
+			packageReferences = (
+				81158A542F9946ED006B2741 /* XCRemoteSwiftPackageReference "Dynamic" */,
+			);
 			productRefGroup = 493243FC2749D9F0003E8999 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -243,6 +248,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		81158A542F9946ED006B2741 /* XCRemoteSwiftPackageReference "Dynamic" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mhdhejazi/Dynamic";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		81158A552F9946ED006B2741 /* Dynamic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 81158A542F9946ED006B2741 /* XCRemoteSwiftPackageReference "Dynamic" */;
+			productName = Dynamic;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 493243F32749D9F0003E8999 /* Project object */;
 }
