@@ -44,6 +44,7 @@
 		49F82D47274A0CC5004D986D /* WindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowController.swift; sourceTree = "<group>"; };
 		49F82D4B274A0D98004D986D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		49F82D4D274A21C5004D986D /* ConfigurationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationViewController.swift; sourceTree = "<group>"; };
+		814FD5342DA2F33B00568D5E /* PrivateBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrivateBridge.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +90,7 @@
 				49D08704274BBE2A00859181 /* Toolbar.swift */,
 				49F82D4B274A0D98004D986D /* ViewController.swift */,
 				49F82D45274A0609004D986D /* VirtualMachine.swift */,
+				814FD5342DA2F33B00568D5E /* PrivateBridge.h */,
 				49F82D47274A0CC5004D986D /* WindowController.swift */,
 				493244042749D9F1003E8999 /* Assets.xcassets */,
 				49D086FB274BBA3700859181 /* Debug.xcconfig */,
@@ -205,6 +207,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 49D086FF274BBA9C00859181 /* VirtualApple.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_ASSET_PATHS = "";
+				SWIFT_OBJC_BRIDGING_HEADER = /Users/whbex/Sources/VirtualApple/VirtualApple/PrivateBridge.h;
 			};
 			name = Debug;
 		};
@@ -212,6 +216,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 49D086FF274BBA9C00859181 /* VirtualApple.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_ASSET_PATHS = "";
+				SWIFT_OBJC_BRIDGING_HEADER = /Users/whbex/Sources/VirtualApple/VirtualApple/PrivateBridge.h;
 			};
 			name = Release;
 		};

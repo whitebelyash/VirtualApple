@@ -8,8 +8,13 @@
 import Foundation
 import Virtualization
 
-@objc protocol _VZGDBDebugStubConfiguration {
+
+@objc protocol _VZGDBDebugStubConfiguration{
 	init(port: Int)
+}
+@objc protocol _VZPL011SerialPortConfiguration {
+    init()
+    var attachment: VZSerialPortAttachment { get set }
 }
 
 @objc protocol _VZVirtualMachineConfiguration {
@@ -94,20 +99,27 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 		}
 	}
 
-	func install(ipsw: URL, diskSize: Int) async throws {
+	func install(diskSize: Int) async throws {
 		FileManager.default.createFile(atPath: url.appendingPathComponent("disk.img").path, contents: nil)
 		let handle = try FileHandle(forWritingTo: url.appendingPathComponent("disk.img"))
 		try handle.truncate(atOffset: UInt64(diskSize) << 30)
 
-		let image = try await VZMacOSRestoreImage.image(from: ipsw)
-		hardwareModel = image.mostFeaturefulSupportedConfiguration!.hardwareModel
+		//let image = try await VZMacOSRestoreImage.image(from: ipsw)
+		//hardwareModel = image.mostFeaturefulSupportedConfiguration!.hardwareModel
+        let hardwareDescriptor = unsafeBitCast(NSClassFromString("_VZMacHardwareModelDescriptor"), to: _VZMacHardwareModelDescriptor.Type.self).init()
+        hardwareDescriptor.setISA(1)
+        hardwareDescriptor.setPlatformVersion(2)
+        hardwareDescriptor.setBoardID(0x90)
+        
+        hardwareModel = VZMacHardwareModel._hardwareModel(with: hardwareDescriptor)
+        
 		metadata.hardwareModel = hardwareModel.dataRepresentation
 		machineIdentifier = VZMacMachineIdentifier()
 		metadata.machineIdentifier = machineIdentifier.dataRepresentation
 		try setupVirtualMachine()
-		let installer = VZMacOSInstaller(virtualMachine: virtualMachine, restoringFromImageAt: image.url)
-		installProgress = installer.progress
-		try await installer.install()
+		//let installer = VZMacOSInstaller(virtualMachine: virtualMachine, restoringFromImageAt: image.url)
+		//installProgress = installer.progress
+		//try await installer.install()
 		metadata.installed = true
 		try saveMetadata()
 	}
@@ -116,12 +128,15 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 		let configuration = metadata.configuration!
 
 		let vmConfiguration = VZVirtualMachineConfiguration()
-		vmConfiguration.bootLoader = VZMacOSBootLoader()
+        vmConfiguration.bootLoader = VZMacOSBootLoader()
 		let platform = VZMacPlatformConfiguration()
 		platform.hardwareModel = hardwareModel
 		platform.auxiliaryStorage = try VZMacAuxiliaryStorage(creatingStorageAt: url.appendingPathComponent("aux.img"), hardwareModel: hardwareModel, options: .allowOverwrite)
 		platform.machineIdentifier = machineIdentifier
-
+        let serial = unsafeBitCast(NSClassFromString("_VZPL011SerialPortConfiguration"), to: _VZPL011SerialPortConfiguration.Type.self).init()
+        let serial_attachment = VZFileHandleSerialPortAttachment.init(fileHandleForReading: FileHandle.standardInput, fileHandleForWriting: FileHandle.standardOutput)
+        serial.attachment = serial_attachment
+        vmConfiguration.serialPorts.append(unsafeBitCast(serial, to: VZSerialPortConfiguration.self))
 		vmConfiguration.platform = platform
 		vmConfiguration.cpuCount = configuration.cpuCount
 		vmConfiguration.memorySize = configuration.memorySize
@@ -156,12 +171,12 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 
 		func populateFromConfiguration(_ options: _VZVirtualMachineStartOptions) {
 			if #available(macOS 13, *) {
-				options._panicAction = configuration.haltOnPanic
+				//options._panicAction = configuration.haltOnPanic
 				options._stopInIBootStage1 = configuration.haltInIBoot1
 				options._stopInIBootStage2 = configuration.haltInIBoot2
 				options._forceDFU = configuration.bootIntoDFU
 			} else {
-				options.panicAction = configuration.haltOnPanic
+				//options.panicAction = configuration.haltOnPanic
 				options.stopInIBootStage1 = configuration.haltInIBoot1
 				options.stopInIBootStage2 = configuration.haltInIBoot2
 				options.forceDFU = configuration.bootIntoDFU
@@ -173,14 +188,15 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 			options.startUpFromMacOSRecovery = configuration.bootIntoMacOSRecovery
 			populateFromConfiguration(unsafeBitCast(options, to: _VZVirtualMachineStartOptions.self))
 			try await virtualMachine.start(options: options)
-		} else {
-			let options = unsafeBitCast(NSClassFromString("_VZVirtualMachineStartOptions")!, to: _VZVirtualMachineStartOptions.Type.self).init()
-			populateFromConfiguration(options)
-			options.bootMacOSRecovery = configuration.bootIntoMacOSRecovery
-			try await unsafeBitCast(virtualMachine, to: _VZVirtualMachine.self)._start(with: options)
-		}
+        } else {
+            let options = unsafeBitCast(NSClassFromString("_VZVirtualMachineStartOptions")!, to: _VZVirtualMachineStartOptions.Type.self).init()
+            populateFromConfiguration(options)
+            options.bootMacOSRecovery = configuration.bootIntoMacOSRecovery
+            try await unsafeBitCast(virtualMachine, to: _VZVirtualMachine.self)._start(with: options)
+        }
 
 		running = true
+        print("\n === New VM Session ===\n")
 	}
 
 	func stop() async throws {
