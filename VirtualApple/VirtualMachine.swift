@@ -107,9 +107,9 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 		//let image = try await VZMacOSRestoreImage.image(from: ipsw)
 		//hardwareModel = image.mostFeaturefulSupportedConfiguration!.hardwareModel
         let hardwareDescriptor = unsafeBitCast(NSClassFromString("_VZMacHardwareModelDescriptor"), to: _VZMacHardwareModelDescriptor.Type.self).init()
-        hardwareDescriptor.setISA(1)
-        hardwareDescriptor.setPlatformVersion(2)
-        hardwareDescriptor.setBoardID(0x90)
+        //hardwareDescriptor.setISA(1)
+        hardwareDescriptor.setPlatformVersion(2) // 2 - vma2macos
+        hardwareDescriptor.setBoardID(0x20)
         
         hardwareModel = VZMacHardwareModel._hardwareModel(with: hardwareDescriptor)
         
