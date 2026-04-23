@@ -90,27 +90,32 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 		}
 	}
 
-	func install(diskSize: Int) async throws {
+    func install(ipsw: URL?, diskSize: Int) async throws {
 		FileManager.default.createFile(atPath: url.appendingPathComponent("disk.img").path, contents: nil)
 		let handle = try FileHandle(forWritingTo: url.appendingPathComponent("disk.img"))
 		try handle.truncate(atOffset: UInt64(diskSize) << 30)
-
-		//let image = try await VZMacOSRestoreImage.image(from: ipsw)
-		//hardwareModel = image.mostFeaturefulSupportedConfiguration!.hardwareModel
-        let hardwareDescriptor = Dynamic._VZMacHardwareModelDescriptor
-        //hardwareDescriptor.setISA(1)
-        hardwareDescriptor.setPlatformVersion(2) // 2 - vma2macos
-        hardwareDescriptor.setBoardID(0x20) // VirtualMac2,1
         
-        hardwareModel = Dynamic.VZMacHardwareModel._hardwareModel(with: hardwareDescriptor)
-        
-		metadata.hardwareModel = hardwareModel.dataRepresentation
+        if let url = ipsw {
+            let image = try await VZMacOSRestoreImage.image(from: url)
+            hardwareModel = image.mostFeaturefulSupportedConfiguration!.hardwareModel
+        }
+        // Manual setup
+        else {
+            let hardwareDescriptor = Dynamic._VZMacHardwareModelDescriptor
+            //hardwareDescriptor.setISA(1)
+            hardwareDescriptor.setPlatformVersion(2) // 2 - vma2macos
+            hardwareDescriptor.setBoardID(0x20) // VirtualMac2,1
+            hardwareModel = Dynamic.VZMacHardwareModel.hardwareModel(with: hardwareDescriptor)
+        }
+		metadata.hardwareModel = hardwareModel!.dataRepresentation
 		machineIdentifier = VZMacMachineIdentifier()
 		metadata.machineIdentifier = machineIdentifier.dataRepresentation
 		try setupVirtualMachine()
-		//let installer = VZMacOSInstaller(virtualMachine: virtualMachine, restoringFromImageAt: image.url)
-		//installProgress = installer.progress
-		//try await installer.install()
+        if let url = ipsw {
+            let installer = VZMacOSInstaller(virtualMachine: virtualMachine, restoringFromImageAt: url)
+            installProgress = installer.progress
+            try await installer.install()
+        }
 		metadata.installed = true
 		try saveMetadata()
 	}

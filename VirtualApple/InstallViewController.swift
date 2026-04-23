@@ -10,7 +10,7 @@ import Cocoa
 @MainActor
 class InstallViewController: NSViewController, NSTextFieldDelegate {
 	var virtualMachine: VirtualMachine!
-    //var ipswPathControl: NSPathControl!
+    var ipswPathControl: NSPathControl!
 	var diskSizeTextField: NSTextField!
 	var installButton: NSButton!
 	var installProgressIndicator: NSProgressIndicator!
@@ -23,7 +23,7 @@ class InstallViewController: NSViewController, NSTextFieldDelegate {
 
 	override func loadView() {
 		let view = NSView()
-        /*
+        
 		let ipswLabel = NSTextField(labelWithString: "IPSW:")
 		ipswPathControl = NSPathControl()
 		ipswPathControl.target = self
@@ -32,7 +32,6 @@ class InstallViewController: NSViewController, NSTextFieldDelegate {
 		ipswPathControl.pathStyle = .popUp
 		let ipswStackView = NSStackView(fixedSizeViews: [ipswLabel, ipswPathControl])
 		ipswStackView.alignment = .firstBaseline
-         */
 
 		let diskSizeLabel = NSTextField(labelWithString: "Disk size:")
 		diskSizeTextField = NSTextField()
@@ -42,7 +41,7 @@ class InstallViewController: NSViewController, NSTextFieldDelegate {
 		let diskSizeStackView = NSStackView(fixedSizeViews: [diskSizeLabel, diskSizeTextField, diskSizeGBLabel])
 		diskSizeStackView.alignment = .firstBaseline
 
-		let installStackView = NSStackView(views: [diskSizeStackView])
+		let installStackView = NSStackView(views: [ipswStackView, diskSizeStackView])
 		installStackView.orientation = .vertical
 		installStackView.fitContents()
 		view.addSubview(installStackView)
@@ -68,8 +67,8 @@ class InstallViewController: NSViewController, NSTextFieldDelegate {
 			installStackView.leadingAnchor.constraint(equalToSystemSpacingAfter: view.leadingAnchor, multiplier: 1),
 			view.trailingAnchor.constraint(equalToSystemSpacingAfter: installStackView.trailingAnchor, multiplier: 1),
 			installStackView.topAnchor.constraint(equalToSystemSpacingBelow: view.topAnchor, multiplier: 1),
-			//ipswLabel.trailingAnchor.constraint(equalTo: diskSizeLabel.trailingAnchor),
-			//ipswPathControl.widthAnchor.constraint(equalToConstant: 240),
+			ipswLabel.trailingAnchor.constraint(equalTo: diskSizeLabel.trailingAnchor),
+			ipswPathControl.widthAnchor.constraint(equalToConstant: 240),
 			diskSizeTextField.widthAnchor.constraint(equalToConstant: 64),
 			cancelButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 64),
 			installButton.leadingAnchor.constraint(equalToSystemSpacingAfter: cancelButton.trailingAnchor, multiplier: 1),
@@ -90,10 +89,10 @@ class InstallViewController: NSViewController, NSTextFieldDelegate {
 
 	func validateUI() {
 		installButton.title = installing ? "Installing…" : "Install"
-        installButton.isEnabled = true // proper fix
+        installButton.isEnabled = !installing && Int(diskSizeTextField.stringValue) != nil
 		installProgressIndicator.isHidden = !installing
-		//ipswPathControl.isEditable = !installing
-		//ipswPathControl.isEnabled = !installing
+		ipswPathControl.isEditable = !installing
+		ipswPathControl.isEnabled = !installing
 		diskSizeTextField.isEditable = true
 		diskSizeTextField.isEnabled = true
 	}
@@ -121,7 +120,7 @@ class InstallViewController: NSViewController, NSTextFieldDelegate {
 		}
 		Task {
 			let result = await Task {
-				try await virtualMachine.install(diskSize: Int(diskSizeTextField.stringValue)!)
+                try await virtualMachine.install(ipsw: ipswPathControl.url, diskSize: Int(diskSizeTextField.stringValue)!)
 				progressTask.cancel()
 				(view.window!.sheetParent!.windowController as! WindowController).dismiss(self)
 			}.result
