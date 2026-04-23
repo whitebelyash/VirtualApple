@@ -15,6 +15,8 @@ import Dynamic
 	func _start(with options: _VZVirtualMachineStartOptions) async throws
 }
 
+
+// TODO: this should be reworked as it breaks building the project with macOS13+ deployment target
 @objc protocol _VZVirtualMachineStartOptions {
 	init()
 	@available(macOS, obsoleted: 13)
@@ -50,6 +52,7 @@ struct Configuration: Codable {
 	var haltInIBoot1: Bool
 	var haltInIBoot2: Bool
 	var debugPort: Int?
+    var romURL: URL?
 }
 
 struct Metadata: Codable {
@@ -63,7 +66,6 @@ struct Metadata: Codable {
 class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 	var metadata: Metadata
 	let url: URL
-    var romURL: URL?
 	var virtualMachine: VZVirtualMachine!
 	var hardwareModel: VZMacHardwareModel!
 	var machineIdentifier: VZMacMachineIdentifier!
@@ -118,13 +120,13 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 
 		let vmConfiguration = VZVirtualMachineConfiguration()
         let bootLoader = VZMacOSBootLoader()
-        let romURL = URL(fileURLWithPath: "/Users/whbex/avp.bin")
-        if FileManager.default.fileExists(atPath: romURL.path) {
-            self.romURL = romURL
-            Dynamic(bootLoader)._setROMURL(romURL)
+        if let romURL = configuration.romURL {
+            if FileManager.default.fileExists(atPath: romURL.path) {
+                Dynamic(bootLoader)._setROMURL(romURL)
+            }
         }
-        vmConfiguration.bootLoader = bootLoader
         
+        vmConfiguration.bootLoader = bootLoader
 		let platform = VZMacPlatformConfiguration()
 		platform.hardwareModel = hardwareModel
 		platform.auxiliaryStorage = try VZMacAuxiliaryStorage(creatingStorageAt: url.appendingPathComponent("aux.img"), hardwareModel: hardwareModel, options: .allowOverwrite)
@@ -193,7 +195,7 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 
 		running = true
         print("Starting VM (DFU: \(metadata.configuration!.bootIntoDFU.description))")
-        if let romURL = self.romURL {
+        if let romURL = metadata.configuration!.romURL {
             print("Using custom AVPBooter at \(romURL.path)")
         }
 	}

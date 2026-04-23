@@ -23,6 +23,7 @@ class ConfigurationViewController: NSViewController, NSTextFieldDelegate {
 	var haltInIBoot2Checkbox: NSButton!
 	var debugCheckbox: NSButton!
 	var debugPortTextField: NSTextField!
+    var romURLTextField: NSTextField!
 	var saveButton: NSButton!
 	var cpuCounts: [Int]!
 	var memories: [UInt64]!
@@ -133,17 +134,36 @@ class ConfigurationViewController: NSViewController, NSTextFieldDelegate {
 			debugCheckbox.state = .on
 			debugPortTextField.stringValue = "\(debugPort)"
 		}
+        
+        let romLabel = NSTextField(labelWithString: "AVPBooter:")
+        romURLTextField = NSTextField()
+        romURLTextField.delegate = self
+        romURLTextField.placeholderString = "/Path/to/AVPBooter.vmapple2.bin"
+        if let romURL = virtualMachine.metadata.configuration?.romURL {
+            romURLTextField.stringValue = "\(romURL.path)"
+        }
+        
 		let innerDebugStackView = NSStackView(fixedSizeViews: [debugCheckbox, debugPortTextField])
 		innerDebugStackView.alignment = .firstBaseline
-		let debugInformationalLabel = NSTextField(
-			wrappingLabelWithString:
-				"Starting a virtual machine with the GDB stub requires passing a check (run by the VirtualMachine XPC service) against this process for the com.apple.private.virtualization entitlement.")
-		debugInformationalLabel.textColor = .secondaryLabelColor
-		debugInformationalLabel.font = .systemFont(ofSize: NSFont.systemFontSize(for: .small))
-		let debugItemsStackView = NSStackView(fixedSizeViews: [innerDebugStackView, debugInformationalLabel])
+        let innerRomStackView = NSStackView(fixedSizeViews: [romURLTextField])
+        innerRomStackView.alignment = .firstBaseline
+
+		let debugItemsStackView = NSStackView(fixedSizeViews: [innerDebugStackView])
 		debugItemsStackView.orientation = .vertical
 		debugItemsStackView.alignment = .leading
+        
+        let romItemsStackView = NSStackView(fixedSizeViews: [innerRomStackView])
+        romItemsStackView.orientation = .vertical
+        romItemsStackView.alignment = .leading
+        
 		let debugStackView = NSStackView(fixedSizeViews: [debugLabel, debugItemsStackView])
+        let romStackView = NSStackView(fixedSizeViews: [romLabel, romItemsStackView])
+        
+        let privateInformationalLabel = NSTextField(
+            wrappingLabelWithString:
+                "Starting a virtual machine with the private features enabled requires passing a check (run by the VirtualMachine XPC service) against this process for the com.apple.private.virtualization entitlement.")
+        privateInformationalLabel.textColor = .secondaryLabelColor
+        privateInformationalLabel.font = .systemFont(ofSize: NSFont.systemFontSize(for: .small))
 
 		@MainActor
 		func separator() -> NSBox {
@@ -162,6 +182,8 @@ class ConfigurationViewController: NSViewController, NSTextFieldDelegate {
 			haltStackView,
 			separator(),
 			debugStackView,
+            romStackView,
+            privateInformationalLabel
 		])
 		optionsStackView.orientation = .vertical
 		optionsStackView.spacing *= 2
@@ -188,8 +210,10 @@ class ConfigurationViewController: NSViewController, NSTextFieldDelegate {
 			screenLabel.firstBaselineAnchor.constraint(equalTo: innerScreenStackView.firstBaselineAnchor),
 			haltLabel.firstBaselineAnchor.constraint(equalTo: haltOnPanicCheckbox.firstBaselineAnchor),
 			debugPortTextField.widthAnchor.constraint(equalToConstant: 64),
+            romURLTextField.widthAnchor.constraint(equalToConstant: 400),
 			debugLabel.firstBaselineAnchor.constraint(equalTo: innerDebugStackView.firstBaselineAnchor),
-			debugInformationalLabel.widthAnchor.constraint(lessThanOrEqualTo: cpuCountSlider.widthAnchor),
+            romLabel.firstBaselineAnchor.constraint(equalTo: innerRomStackView.firstBaselineAnchor),
+			privateInformationalLabel.widthAnchor.constraint(lessThanOrEqualTo: cpuCountSlider.widthAnchor),
 			saveButton.widthAnchor.constraint(equalToConstant: 64),
 			saveButton.topAnchor.constraint(equalToSystemSpacingBelow: optionsStackView.bottomAnchor, multiplier: 1),
 			view.trailingAnchor.constraint(equalToSystemSpacingAfter: saveButton.trailingAnchor, multiplier: 1),
@@ -241,7 +265,8 @@ class ConfigurationViewController: NSViewController, NSTextFieldDelegate {
 			haltOnPanic: haltOnPanicCheckbox.state == .on,
 			haltInIBoot1: haltInIBoot1Checkbox.state == .on,
 			haltInIBoot2: haltInIBoot2Checkbox.state == .on,
-			debugPort: debugPortTextField.isEnabled ? Int(debugPortTextField.stringValue) : nil
+			debugPort: debugPortTextField.isEnabled ? Int(debugPortTextField.stringValue) : nil,
+            romURL: !romURLTextField.stringValue.isEmpty ? URL(fileURLWithPath: romURLTextField.stringValue) : nil
 		)
 		try virtualMachine.saveMetadata()
 		(view.window!.sheetParent!.windowController as! WindowController).dismiss(self)
