@@ -101,11 +101,11 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
         }
         // Manual setup
         else {
-            let hardwareDescriptor = Dynamic._VZMacHardwareModelDescriptor
+            let hardwareDescriptor = Dynamic._VZMacHardwareModelDescriptor()
             //hardwareDescriptor.setISA(1)
             hardwareDescriptor.setPlatformVersion(2) // 2 - vma2macos
             hardwareDescriptor.setBoardID(0x20) // VirtualMac2,1
-            hardwareModel = Dynamic.VZMacHardwareModel.hardwareModel(with: hardwareDescriptor)
+            hardwareModel = Dynamic.VZMacHardwareModel._hardwareModelWithDescriptor(hardwareDescriptor.asObject)
         }
 		metadata.hardwareModel = hardwareModel!.dataRepresentation
 		machineIdentifier = VZMacMachineIdentifier()
