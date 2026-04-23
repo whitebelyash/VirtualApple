@@ -9,18 +9,6 @@ import Foundation
 import Virtualization
 import Dynamic
 
-@objc protocol _VZGDBDebugStubConfiguration{
-	init(port: Int)
-}
-@objc protocol _VZPL011SerialPortConfiguration {
-    init()
-    var attachment: VZSerialPortAttachment { get set }
-}
-
-@objc protocol _VZVirtualMachineConfiguration {
-	var _debugStub: _VZGDBDebugStubConfiguration { get @objc(_setDebugStub:) set }
-}
-
 @objc protocol _VZVirtualMachine {
 	@available(macOS, obsoleted: 13)
 	@objc(_startWithOptions:completionHandler:)
@@ -107,12 +95,12 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 
 		//let image = try await VZMacOSRestoreImage.image(from: ipsw)
 		//hardwareModel = image.mostFeaturefulSupportedConfiguration!.hardwareModel
-        let hardwareDescriptor = unsafeBitCast(NSClassFromString("_VZMacHardwareModelDescriptor"), to: _VZMacHardwareModelDescriptor.Type.self).init()
+        let hardwareDescriptor = Dynamic._VZMacHardwareModelDescriptor
         //hardwareDescriptor.setISA(1)
         hardwareDescriptor.setPlatformVersion(2) // 2 - vma2macos
-        hardwareDescriptor.setBoardID(0x20)
+        hardwareDescriptor.setBoardID(0x20) // VirtualMac2,1
         
-        hardwareModel = VZMacHardwareModel._hardwareModel(with: hardwareDescriptor)
+        hardwareModel = Dynamic.VZMacHardwareModel._hardwareModel(with: hardwareDescriptor)
         
 		metadata.hardwareModel = hardwareModel.dataRepresentation
 		machineIdentifier = VZMacMachineIdentifier()
@@ -141,10 +129,10 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 		platform.hardwareModel = hardwareModel
 		platform.auxiliaryStorage = try VZMacAuxiliaryStorage(creatingStorageAt: url.appendingPathComponent("aux.img"), hardwareModel: hardwareModel, options: .allowOverwrite)
 		platform.machineIdentifier = machineIdentifier
-        let serial = unsafeBitCast(NSClassFromString("_VZPL011SerialPortConfiguration"), to: _VZPL011SerialPortConfiguration.Type.self).init()
+        let serial = Dynamic._VZPL011SerialPortConfiguration()
         let serial_attachment = VZFileHandleSerialPortAttachment.init(fileHandleForReading: FileHandle.standardInput, fileHandleForWriting: FileHandle.standardOutput)
-        serial.attachment = serial_attachment
-        vmConfiguration.serialPorts.append(unsafeBitCast(serial, to: VZSerialPortConfiguration.self))
+        serial.Attachment = serial_attachment
+        vmConfiguration.serialPorts.append(unsafeBitCast(serial.asObject, to: VZSerialPortConfiguration.self))
 		vmConfiguration.platform = platform
 		vmConfiguration.cpuCount = configuration.cpuCount
 		vmConfiguration.memorySize = configuration.memorySize
@@ -166,8 +154,8 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 		vmConfiguration.storageDevices = [VZVirtioBlockDeviceConfiguration(attachment: try VZDiskImageStorageDeviceAttachment(url: url.appendingPathComponent("disk.img"), readOnly: false))]
 
 		if let debugPort = configuration.debugPort {
-			let debugStub = unsafeBitCast(NSClassFromString("_VZGDBDebugStubConfiguration")!, to: _VZGDBDebugStubConfiguration.Type.self).init(port: debugPort)
-			unsafeBitCast(vmConfiguration, to: _VZVirtualMachineConfiguration.self)._debugStub = debugStub
+            let debugStub = Dynamic._VZGDBDebugStubConfiguration(port: debugPort)
+            Dynamic(vmConfiguration)._debugStub = debugStub.asObject
 		}
 
 		virtualMachine = VZVirtualMachine(configuration: vmConfiguration)
@@ -212,7 +200,7 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate {
 
 	func stop() async throws {
 		defer {
-            print("VM is shutting down")
+            print("VM is stopping")
 			running = false
 		}
 		try await virtualMachine.stop()
